@@ -41,7 +41,7 @@ export default function Navbar({ session }) {
         <div className="hidden md:flex items-center space-x-4">
           <DarkModeToggle />
 
-          {session ? (
+          {session?.user ? (
             <div className="flex items-center gap-3">
               <span className="hidden md:inline-flex text-sm font-medium bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 px-3 py-1.5 rounded-md shadow-sm border border-gray-200 dark:border-gray-700">
                 Hello, {session?.user?.name || session?.user?.email || 'User'}

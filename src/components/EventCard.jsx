@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { toast } from "react-hot-toast";
 
 // Function to get category color based on category name
 const getCategoryColor = (category) => {
@@ -41,6 +42,7 @@ export default function EventCard({ event, isBooked }) {
 
   const handleBooking = async () => {
     if (!session) {
+      toast.error('Please sign in to book this event');
       router.push('/auth/signin');
       return;
     }
@@ -58,14 +60,15 @@ export default function EventCard({ event, isBooked }) {
       });
 
       if (response.ok) {
+        toast.success('Event booked successfully!');
         // Redirect to success page
         router.push('/events/booking-success');
       } else {
         const data = await response.json();
-        alert(data.message || 'Failed to book event');
+        toast.error(data.message || 'Failed to book event');
       }
     } catch (error) {
-      alert('An error occurred while booking the event');
+      toast.error('An error occurred while booking the event');
     } finally {
       setBooking(false);
     }

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'react-hot-toast';
 
 export default function BookNowButton({ eventId }) {
   const { data: session } = useSession();
@@ -11,6 +12,7 @@ export default function BookNowButton({ eventId }) {
 
   const handleBooking = async () => {
     if (!session) {
+      toast.error('Please sign in to book this event');
       router.push('/auth/signin');
       return;
     }
@@ -28,14 +30,15 @@ export default function BookNowButton({ eventId }) {
       });
 
       if (response.ok) {
+        toast.success('Event booked successfully!');
         // Redirect to success page
         router.push('/events/booking-success');
       } else {
         const data = await response.json();
-        alert(data.message || 'Failed to book event');
+        toast.error(data.message || 'Failed to book event');
       }
     } catch (error) {
-      alert('An error occurred while booking the event');
+      toast.error('An error occurred while booking the event');
     } finally {
       setBooking(false);
     }

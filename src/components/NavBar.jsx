@@ -4,16 +4,27 @@ import { useState } from "react";
 import SignOutButton from "@/components/SignOutButton";
 import Link from "next/link";
 import DarkModeToggle from "./ToggleDark";
+import { useSession } from "next-auth/react";
 
-export default function Navbar({ session }) {
+export default function Navbar({ session: propSession }) {
+  // Use the session from props if provided, otherwise use the session from useSession
+  const { data: sessionData } = useSession();
+  const session = propSession || sessionData;
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
   };
 
+  // For debugging
+  console.log("NavBar session:", session);
+
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 shadow-md py-3 sm:py-4 px-4 sm:px-6 transition-colors duration-200">
+    <>
+      {/* Spacer div to push content down below the fixed navbar */}
+      <div className="h-16 md:h-20"></div>
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 shadow-md py-3 sm:py-4 px-4 sm:px-6 transition-colors duration-200">
       <div className="max-w-7xl mx-auto flex justify-between items-center">
         {/* Logo/Site Name */}
         <Link href="/" className="flex items-center space-x-2">
@@ -57,7 +68,7 @@ export default function Navbar({ session }) {
                   Admin
                 </Link>
               )}
-              {session?.user && <SignOutButton />}
+              <SignOutButton />
             </div>
           ) : (
             <div className="flex gap-3">
@@ -88,7 +99,7 @@ export default function Navbar({ session }) {
       {mobileMenuOpen && (
         <div className="md:hidden mt-3 pb-3 border-t border-gray-200 dark:border-gray-700">
           <div className="pt-3 px-4 space-y-3">
-            {session ? (
+            {session?.user ? (
               <>
                 <div className="text-sm font-medium bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 px-3 py-2 rounded-md shadow-sm border border-gray-200 dark:border-gray-700 mb-3">
                   Hello, {session?.user?.name || session?.user?.email || 'User'}
@@ -96,7 +107,7 @@ export default function Navbar({ session }) {
                 {session?.user?.role === 'admin' && (
                   <Link
                     href="/admin"
-                    className="block w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm font-medium shadow-md transition-colors duration-200 flex items-center"
+                    className="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm font-medium shadow-md transition-colors duration-200 flex items-center"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
@@ -105,11 +116,9 @@ export default function Navbar({ session }) {
                     Admin Panel
                   </Link>
                 )}
-                {session?.user && (
-                  <div className="mt-3">
-                    <SignOutButton fullWidth={true} />
-                  </div>
-                )}
+                <div className="mt-3">
+                  <SignOutButton fullWidth={true} />
+                </div>
               </>
             ) : (
               <div className="flex flex-col gap-3">
@@ -139,5 +148,6 @@ export default function Navbar({ session }) {
         </div>
       )}
     </header>
+    </>
   );
 }

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import EventCard from '@/components/EventCard';
 import Loading from './loading';
-import Navbar from '@/components/NavBar';
+import { toast } from 'react-hot-toast';
 
 export default function Home() {
   const [session, setSession] = useState(null);
@@ -67,9 +67,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
-      <Navbar session={session} />
-
-      <div className="max-w-7xl mx-auto pt-20 sm:pt-24 px-3 sm:px-6 lg:px-8 pb-8 sm:pb-12">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pb-8 sm:pb-12">
         <h1 className="text-3xl sm:text-4xl font-bold mb-6 sm:mb-8 text-center text-gray-900 dark:text-white mt-6 sm:mt-8">Upcoming Events</h1>
 
         <div className="mb-6 sm:mb-10 bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl p-4 sm:p-6 shadow-md border border-gray-200 dark:border-gray-700 transition-all duration-200">

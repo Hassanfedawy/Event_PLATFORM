@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import ImageUpload from '@/components/admin/ImageUpload';
+import { toast } from 'react-hot-toast';
 
 export default function EditEventPage({ params }) {
   const router = useRouter();
@@ -81,27 +82,23 @@ export default function EditEventPage({ params }) {
     setError('');
 
     try {
-      // Get the latest form data directly from state
-      console.log('Edit page - Submitting form data:', formData);
-
       // Create a copy to ensure we're sending the latest data
       const dataToSubmit = { ...formData };
 
       // Double-check that imageUrl is included
       if (!dataToSubmit.imageUrl) {
-        console.warn('No image URL in form data, checking if one was uploaded but not saved to state');
         // This is a safety check in case the state update in handleImageUpload hasn't completed yet
         const imageUploadField = document.querySelector('img[alt="Event preview"]');
         if (imageUploadField && imageUploadField.src && !imageUploadField.src.includes('event-placeholder')) {
-          console.log('Found image in DOM:', imageUploadField.src);
           dataToSubmit.imageUrl = imageUploadField.src;
         } else if (imageUploadField && imageUploadField.dataset && imageUploadField.dataset.cloudinaryUrl) {
-          console.log('Found image URL in data attribute:', imageUploadField.dataset.cloudinaryUrl);
           dataToSubmit.imageUrl = imageUploadField.dataset.cloudinaryUrl;
+        } else {
+          toast.error('Please upload an image for the event');
+          setSaving(false);
+          return;
         }
       }
-
-      console.log('Edit page - Data to submit (with imageUrl):', dataToSubmit);
 
       const response = await fetch(`/api/admin/events/${id}`, {
         method: 'PUT',
@@ -116,8 +113,10 @@ export default function EditEventPage({ params }) {
         throw new Error(data.message || 'Failed to update event');
       }
 
+      toast.success('Event updated successfully!');
       router.push('/admin/events');
     } catch (err) {
+      toast.error(err.message || 'Failed to update event');
       setError(err.message);
     } finally {
       setSaving(false);
@@ -125,28 +124,44 @@ export default function EditEventPage({ params }) {
   };
 
   if (loading) {
-    return <div className="text-center py-10">Loading...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <svg className="animate-spin h-10 w-10 text-blue-600 dark:text-blue-400 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <p className="text-lg font-medium text-gray-700 dark:text-gray-300">Loading event data...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Edit Event</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Edit Event</h1>
         <Link
           href="/admin/events"
-          className="text-blue-600 dark:text-blue-400 hover:underline"
+          className="flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
         >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
+          </svg>
           Back to Events
         </Link>
       </div>
 
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-          {error}
+        <div className="bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-md mb-6 flex items-start">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+          </svg>
+          <span>{error}</span>
         </div>
       )}
 
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 p-6">
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -270,19 +285,34 @@ export default function EditEventPage({ params }) {
             onImageUpload={handleImageUpload}
           />
 
-          <div className="flex justify-end">
+          <div className="flex justify-end mt-8">
             <Link
               href="/admin/events"
-              className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-2 px-4 rounded mr-2"
+              className="flex items-center justify-center bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 py-2.5 px-5 rounded-md font-medium transition-colors duration-200 mr-3"
             >
               Cancel
             </Link>
             <button
               type="submit"
               disabled={saving}
-              className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded disabled:opacity-50"
+              className="flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white py-2.5 px-5 rounded-md font-medium transition-colors duration-200 disabled:opacity-70 disabled:cursor-not-allowed shadow-sm"
             >
-              {saving ? 'Saving...' : 'Save Changes'}
+              {saving ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Saving Changes...
+                </>
+              ) : (
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                  Save Changes
+                </>
+              )}
             </button>
           </div>
         </form>
